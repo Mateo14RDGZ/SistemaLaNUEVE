@@ -1,0 +1,13 @@
+"use client";
+import { useEffect, useState } from "react";
+import { ScanLine, ReceiptText } from "lucide-react";
+import { SaleForm } from "@/components/sale-form";
+import { money } from "@/lib/format";
+type Sale = { id: string; total: string; status: string; createdAt: string; items: { quantity: number; productNameSnapshot: string; variantLabelSnapshot: string }[] };
+type Variant = { id: string; label: string; sku: string; stock: number; price: string; product: { name: string }; commerciallyAvailable: boolean };
+export default function SalesPage() {
+  const [sales,setSales]=useState<Sale[]>([]); const [variants,setVariants]=useState<Variant[]>([]); const [show,setShow]=useState(false); const [loaded,setLoaded]=useState(false);
+  async function load(){const [a,b]=await Promise.all([fetch("/api/sales"),fetch("/api/products")]); if(a.ok)setSales(await a.json());if(b.ok){const p=await b.json();setVariants(p.flatMap((x:any)=>x.variants.filter((v:any)=>v.commerciallyAvailable).map((v:any)=>({...v,product:{name:x.name}}))));}setLoaded(true)}
+  useEffect(()=>{load()},[]);
+  return <main className="page"><div className="eyebrow">Operaciones</div><h1 className="page-title">Ventas</h1><p className="page-subtitle">Registrá cada venta y mantené el stock al día.</p><button className="button full" style={{marginTop:18}} onClick={()=>setShow(true)}><ScanLine size={18}/>Nueva venta</button><div className="section-heading"><h2>Historial reciente</h2><span className="row-sub">Últimas 50</span></div>{!loaded?<div className="loading">Cargando ventas…</div>:sales.length===0?<div className="card empty"><ReceiptText size={25} style={{margin:"0 auto 9px",color:"var(--green)"}}/><strong>Aún no hay ventas</strong>Cuando registres una, su detalle aparecerá en este historial.</div>:<div className="card">{sales.map(s=><div className="list-row" key={s.id}><span className="row-main"><span className="row-title">{s.items.reduce((n,i)=>n+i.quantity,0)} unidades · {s.status==="COMPLETED"?"Completada":"Cancelada"}</span><span className="row-sub">{s.items.map(i=>`${i.quantity} × ${i.productNameSnapshot} ${i.variantLabelSnapshot}`).join(", ")} · {new Date(s.createdAt).toLocaleString("es-UY",{dateStyle:"short",timeStyle:"short"})}</span></span><span className="row-value">{money(s.total)}</span></div>)}</div>}{show&&<div className="backdrop" onClick={()=>setShow(false)}><div className="sheet" onClick={e=>e.stopPropagation()}><div className="sheet-handle"/><div className="eyebrow">Punto de venta</div><h2 className="page-title" style={{fontSize:25,marginBottom:16}}>Nueva venta</h2><SaleForm variants={variants} onDone={()=>{setShow(false);void load()}} onCancel={()=>setShow(false)}/></div></div>}</main>;
+}

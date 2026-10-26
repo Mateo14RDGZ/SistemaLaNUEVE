@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function OfflinePage(){return <main className="page auth-wrap"><section className="auth-card" style={{textAlign:"center"}}><div className="auth-emblem">9</div><div className="eyebrow">Conexión interrumpida</div><h1 className="page-title" style={{marginTop:8}}>Seguimos acá.</h1><p className="page-subtitle">No pudimos cargar los datos. Las ventas, compras y gastos necesitan conexión y confirmación del servidor para guardarse.</p><Link href="/" className="button full" style={{marginTop:20}}>Intentar de nuevo</Link></section></main>}
