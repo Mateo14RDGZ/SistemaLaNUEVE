@@ -44,7 +44,7 @@ El seed requiere `INITIAL_ADMIN_EMAIL` y `INITIAL_ADMIN_PASSWORD` (mínimo 12 ca
 
 ## Neon y migraciones
 
-1. Creá un proyecto y una base en Neon; conservá la cadena pooled para la aplicación serverless.
+1. El proyecto Neon de producción creado para LA NUEVE se llama `la-nueve` y está en AWS South America East 1 (São Paulo). Conservá la cadena pooled para la aplicación serverless.
 2. Creá otra rama/base de desarrollo para desarrollo local. No pruebes migraciones sobre la base de producción.
 3. Copiá la cadena elegida a `DATABASE_URL` y confirmá que requiera SSL (`sslmode=require`).
 4. Ejecutá `npm run db:migrate` localmente para crear y versionar cambios de esquema.
