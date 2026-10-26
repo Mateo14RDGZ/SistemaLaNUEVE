@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
     return () => { alive = false; window.removeEventListener("online", update); window.removeEventListener("offline", update); };
   }, [pathname]);
-  async function logout() { await fetch("/api/auth/logout", { method: "POST" }); setUser(null); router.push("/login"); }
+  async function logout() { const response = await fetch("/api/auth/logout", { method: "POST" }); if (!response.ok) return; setUser(null); router.push("/login"); }
   if (pathname === "/login" || pathname === "/setup") return <>{children}</>;
   if (!checked) return <div className="loading">Abriendo LA NUEVE…</div>;
   if (!user) return <>{children}</>;
