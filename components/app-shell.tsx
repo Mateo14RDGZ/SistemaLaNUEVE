@@ -15,6 +15,7 @@ import {
   ReceiptText,
   ScanLine,
   ShoppingCart,
+  UserRound,
   WifiOff,
   X,
 } from "lucide-react";
@@ -43,7 +44,10 @@ const navigationGroups: { label: string; items: NavigationItem[] }[] = [
   },
   {
     label: "Sistema",
-    items: [{ href: "/mas", label: "Más opciones", icon: ChevronRight }],
+    items: [
+      { href: "/cuenta", label: "Mi cuenta", icon: UserRound },
+      { href: "/mas", label: "Más opciones", icon: ChevronRight },
+    ],
   },
 ];
 
