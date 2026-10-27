@@ -7,14 +7,14 @@ import { apiError } from "@/lib/http";
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1).max(72),
-  newPassword: z.string().min(10).max(72),
+  newPassword: z.string().min(9).max(72),
 });
 
 export async function POST(request: Request) {
   try {
     const parsed = changePasswordSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json({ error: "La contraseña nueva debe tener entre 10 y 72 caracteres." }, { status: 400 });
+      return NextResponse.json({ error: "La contraseña nueva debe tener entre 9 y 72 caracteres." }, { status: 400 });
     }
 
     const sessionUser = await requireUser();

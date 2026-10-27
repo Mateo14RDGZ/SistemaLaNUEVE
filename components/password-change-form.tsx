@@ -48,12 +48,12 @@ export function PasswordChangeForm() {
       </div>
       <div className="field">
         <label htmlFor="newPassword">Nueva contraseña</label>
-        <input id="newPassword" name="newPassword" type="password" autoComplete="new-password" minLength={10} maxLength={72} required />
-        <span className="row-sub">Mínimo 10 caracteres para este cambio.</span>
+        <input id="newPassword" name="newPassword" type="password" autoComplete="new-password" minLength={9} maxLength={72} required />
+        <span className="row-sub">Mínimo 9 caracteres para este cambio.</span>
       </div>
       <div className="field">
         <label htmlFor="confirmation">Repetí la nueva contraseña</label>
-        <input id="confirmation" name="confirmation" type="password" autoComplete="new-password" minLength={10} maxLength={72} required />
+        <input id="confirmation" name="confirmation" type="password" autoComplete="new-password" minLength={9} maxLength={72} required />
       </div>
       {error && <div className="notice error" role="alert">{error}</div>}
       {saved && <div className="notice" role="status">Contraseña cambiada. Tu sesión sigue abierta.</div>}
