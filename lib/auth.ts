@@ -32,6 +32,12 @@ export async function requireUser() {
   return user;
 }
 
+export async function requireAdmin() {
+  const user = await requireUser();
+  if (user.role !== "ADMIN") throw new Error("FORBIDDEN");
+  return user;
+}
+
 export async function clearSession() {
   (await cookies()).delete(COOKIE);
 }

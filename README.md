@@ -2,7 +2,7 @@
 
 Sistema privado de gestión para una cervecería artesanal de Trinidad, Flores. La primera versión está pensada para iPhone y cubre catálogo, ventas, stock, gastos, compras de insumos, historial de movimientos y planificación básica de lotes.
 
-> **Estado:** base funcional preparada para desplegar. No hay credenciales Neon/Vercel en este entorno, por lo tanto la persistencia compartida no se puede verificar todavía. La cámara requiere pruebas en un iPhone físico con HTTPS. Los registros reales comienzan vacíos; no hay productos ni precios de demostración.
+> **Estado:** primera versión operativa con catálogo, ventas, compras, gastos, ajustes de stock, lotes, escáner, usuarios y estado de conexión a la base. Los registros reales comienzan vacíos; no hay productos ni precios de demostración. La verificación física de cámara requiere un iPhone con Safari y HTTPS.
 
 ## Stack y arquitectura
 
@@ -30,7 +30,7 @@ npx tsx prisma/seed.ts
 npm run dev
 ```
 
-El seed requiere `INITIAL_ADMIN_EMAIL` y `INITIAL_ADMIN_PASSWORD` (mínimo 12 caracteres). El seed crea el primer administrador solo si ese correo no existe; no incluyas la contraseña en Git. Para dar acceso a Brian, añadí un usuario Operador desde un flujo administrativo futuro o mediante el procedimiento seguro documentado por quien opera la base. La interfaz de gestión de usuarios está pendiente.
+El seed requiere `INITIAL_ADMIN_EMAIL` y `INITIAL_ADMIN_PASSWORD` (mínimo 12 caracteres). El seed crea el primer administrador solo si ese correo no existe; no incluyas la contraseña en Git. Desde la sección **Equipo**, un administrador puede crear operadores o administradores y activar/desactivar accesos. El último administrador activo no se puede desactivar.
 
 ## Variables de entorno
 
@@ -68,7 +68,7 @@ npm run db:studio
 1. Importá el repositorio `Mateo14RDGZ/SistemaLaNUEVE` desde Vercel con el preset Next.js.
 2. Configurá `DATABASE_URL` y `AUTH_SECRET` como variables privadas para Preview y Production por separado. Configurá variables de seed solo durante el bootstrap; quitá `INITIAL_ADMIN_PASSWORD` después.
 3. Mantené una base Neon de Preview/desarrollo separada de Production.
-4. Antes del primer despliegue funcional, aplicá `npm run db:deploy` a la base correspondiente desde un entorno controlado.
+4. Antes del primer despliegue funcional, aplicá `npm run db:deploy` a la base correspondiente desde un entorno controlado. La ruta administrativa `/api/system/health` confirma conectividad y muestra la última migración aplicada sin revelar valores de configuración.
 5. Desplegá y verificá inicio de sesión, creación de catálogo, venta y descuento transaccional, exportación CSV, manifest, service worker y HTTPS. Un build verde por sí solo no verifica la conexión a Neon.
 
 No hay `vercel.json`: Next.js configura el build. No se configura despliegue automático de migraciones.
@@ -85,9 +85,10 @@ Abrí la URL desplegada en Safari, iniciá sesión y usá **Compartir → Añadi
 - Un SKU y un código de barras son únicos en base de datos. Las ventas toman precio y nombre como snapshot histórico.
 - Offline se limita a recursos estáticos y una página informativa. No se confirma ninguna operación si el servidor no respondió.
 - El resultado del panel es ingresos menos gastos registrados, no utilidad neta ni margen bruto contable.
-- Cancelaciones/devoluciones de venta, gestión de usuarios, edición de catálogo, recetas completas, consumo de ingredientes por lote, transición/liberación de lotes, mermas manuales, alertas configurables, importación de comprobantes y reportes financieros están pendientes.
-- La configuración de contraseñas de usuarios iniciales es operativa solo mediante seed; no hay recuperación de contraseña ni límites de intentos aún. Para uso en producción, completar administración de usuarios y protección de acceso antes de abrir el sistema fuera del equipo.
+- El flujo de lotes registra etapas, volumen embotellado, merma y liberación de unidades al stock. La composición de recetas y el descuento automático de ingredientes al elaborar todavía requieren una interfaz/flujo dedicado.
+- La cámara escanea códigos asociados al catálogo; un administrador puede asociar códigos nuevos. Si no hay permiso o HTTPS, el ingreso manual sigue disponible.
+- No hay recuperación de contraseña, segundo factor ni límite de intentos de inicio de sesión. Mantener el acceso limitado al equipo autorizado.
 
 ## Estado de entrega
 
-Completado en esta base: autenticación inicial, productos y variantes, códigos únicos, escaneo/ingreso manual, ventas transaccionales, compras de insumos, gastos, movimientos, dashboard, CSV, lotes planificados, PWA y documentos de despliegue. Pendiente: operación integral de lotes y costos, administración de Mateo/Brian desde UI, cancelaciones, pruebas de integración sobre Neon y verificación con dispositivos reales. El estado del repositorio, build, pruebas, remoto y deployment se reportará por separado en la entrega.
+Incluye autenticación inicial, productos y variantes, códigos únicos, escaneo/ingreso manual, ventas transaccionales e idempotentes, cancelación administrativa con reposición de stock, compras y gastos, ajustes/mermas/roturas, historial de movimientos, administración de usuarios, panel de salud, dashboard, CSV, estados y liberación de lotes, PWA y guía de despliegue. Los tests unitarios verifican cálculos monetarios, límites de fechas de Uruguay y validación de operaciones. La conexión a Neon y el escaneo con cámara física deben verificarse en los entornos y dispositivos reales; no se simulan con productos ficticios.
