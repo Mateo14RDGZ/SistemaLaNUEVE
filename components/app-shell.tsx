@@ -1,30 +1,269 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Package, ScanLine, ReceiptText, Menu, X, WifiOff } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Beer,
+  ChevronRight,
+  CircleDollarSign,
+  FlaskConical,
+  Home,
+  Menu,
+  Package,
+  ReceiptText,
+  ScanLine,
+  ShoppingCart,
+  WifiOff,
+  X,
+} from "lucide-react";
 import { Scanner } from "@/components/scanner";
 
 type User = { name: string; email: string; role: string };
-const nav = [{ href: "/", label: "Inicio", icon: Home }, { href: "/ventas", label: "Ventas", icon: ReceiptText }, { href: "/stock", label: "Stock", icon: Package }, { href: "/gastos", label: "Gastos", icon: ReceiptText }, { href: "/mas", label: "Más", icon: Menu }];
+type NavigationItem = { href: string; label: string; icon: typeof Home };
+
+const navigationGroups: { label: string; items: NavigationItem[] }[] = [
+  {
+    label: "Principal",
+    items: [
+      { href: "/", label: "Inicio", icon: Home },
+      { href: "/ventas", label: "Ventas", icon: ReceiptText },
+      { href: "/stock", label: "Inventario", icon: Package },
+    ],
+  },
+  {
+    label: "Operación",
+    items: [
+      { href: "/compras", label: "Compras", icon: ShoppingCart },
+      { href: "/gastos", label: "Gastos", icon: CircleDollarSign },
+      { href: "/lotes", label: "Elaboración", icon: FlaskConical },
+      { href: "/movimientos", label: "Movimientos", icon: ArrowLeftRight },
+    ],
+  },
+  {
+    label: "Sistema",
+    items: [{ href: "/mas", label: "Más opciones", icon: ChevronRight }],
+  },
+];
+
+function Brand() {
+  return (
+    <span className="brand-lockup">
+      <span className="brand-seal" aria-hidden="true">9</span>
+      <span className="brand-copy">
+        <span className="brand-name">LA NUEVE</span>
+        <span className="brand-tagline">QUE HABLE LO QUE HACEMOS.</span>
+      </span>
+    </span>
+  );
+}
+
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
+function Sidebar({
+  user,
+  pathname,
+  onNavigate,
+  onLogout,
+  mobile = false,
+}: {
+  user: User;
+  pathname: string;
+  onNavigate?: () => void;
+  onLogout: () => void;
+  mobile?: boolean;
+}) {
+  return (
+    <div className={`sidebar-content${mobile ? " sidebar-content-mobile" : ""}`}>
+      <Link href="/" className="sidebar-brand" onClick={onNavigate} aria-label="LA NUEVE, inicio">
+        <Brand />
+      </Link>
+
+      <Link href="/ventas" className="sidebar-primary-action" onClick={onNavigate}>
+        <ScanLine size={18} strokeWidth={2} />
+        <span>Registrar una venta</span>
+      </Link>
+
+      <nav className="sidebar-navigation" aria-label="Navegación principal">
+        {navigationGroups.map((group) => (
+          <section className="sidebar-group" key={group.label} aria-label={group.label}>
+            <h2 className="sidebar-group-label">{group.label}</h2>
+            <div className="sidebar-group-items">
+              {group.items.map(({ href, label, icon: Icon }) => {
+                const active = href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={onNavigate}
+                    aria-current={active ? "page" : undefined}
+                    className={`sidebar-link${active ? " active" : ""}`}
+                  >
+                    <Icon size={17} strokeWidth={active ? 2.1 : 1.9} aria-hidden="true" />
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </nav>
+
+      <div className="sidebar-footer">
+        <div className="user-card">
+          <span className="user-avatar" aria-hidden="true">{initials(user.name)}</span>
+          <span className="user-copy">
+            <span className="user-name">{user.name}</span>
+            <span className="user-role">{user.role === "ADMIN" ? "Administrador" : "Operador"}</span>
+          </span>
+          <button type="button" className="logout-button" onClick={onLogout} aria-label="Cerrar sesión">
+            Salir
+          </button>
+        </div>
+        <p className="sidebar-origin"><Beer size={13} aria-hidden="true" /> Trinidad, Flores · Uruguay</p>
+      </div>
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null); const [checked, setChecked] = useState(false); const [scanner, setScanner] = useState(false); const [online, setOnline] = useState(true); const pathname = usePathname(); const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [checked, setChecked] = useState(false);
+  const [scanner, setScanner] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [online, setOnline] = useState(true);
+  const pathname = usePathname();
+  const router = useRouter();
+  const menuButton = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     let alive = true;
-    fetch("/api/auth/me").then(r => r.ok ? r.json() : null).then(d => { if (alive) setUser(d?.user ?? null); }).catch(() => {}).finally(() => { if (alive) setChecked(true); });
-    const update = () => setOnline(navigator.onLine); update(); window.addEventListener("online", update); window.addEventListener("offline", update);
+    fetch("/api/auth/me")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (alive) setUser(data?.user ?? null); })
+      .catch(() => {})
+      .finally(() => { if (alive) setChecked(true); });
+    const updateConnection = () => setOnline(navigator.onLine);
+    updateConnection();
+    window.addEventListener("online", updateConnection);
+    window.addEventListener("offline", updateConnection);
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
-    return () => { alive = false; window.removeEventListener("online", update); window.removeEventListener("offline", update); };
+    return () => {
+      alive = false;
+      window.removeEventListener("online", updateConnection);
+      window.removeEventListener("offline", updateConnection);
+    };
   }, [pathname]);
-  async function logout() { const response = await fetch("/api/auth/logout", { method: "POST" }); if (!response.ok) return; setUser(null); router.push("/login"); }
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [menuOpen]);
+
+  async function logout() {
+    const response = await fetch("/api/auth/logout", { method: "POST" });
+    if (!response.ok) return;
+    setUser(null);
+    router.push("/login");
+  }
+
   if (pathname === "/login" || pathname === "/setup") return <>{children}</>;
   if (!checked) return <div className="loading">Abriendo LA NUEVE…</div>;
   if (!user) return <>{children}</>;
-  return <>
-    <header className="app-header"><div className="header-inner"><Link href="/" className="brand-lockup"><span className="brand-seal">9</span><span><span className="brand-name">LA NUEVE</span><span className="brand-tagline" style={{ display: "block" }}>QUE HABLE LO QUE HACEMOS.</span></span></Link><button aria-label="Cerrar sesión" onClick={logout} className="header-user">{user.name.split(/\s+/).map(s => s[0]).slice(0, 2).join("").toUpperCase()}<span className="muted" style={{ display: "none" }}>{user.role}</span></button></div></header>
-    {!online && <div className="notice error" style={{ margin: "9px 18px 0", maxWidth: 680, marginInline: "auto", display: "flex", justifyContent: "center", gap: 6 }}><WifiOff size={15}/> Sin conexión: las operaciones de escritura están deshabilitadas.</div>}
-    {children}
-    <nav className="bottom-nav"><div className="bottom-inner">{nav.slice(0, 2).map(item => <Link key={item.href} href={item.href} className={`nav-item ${pathname === item.href ? "active" : ""}`}><item.icon/><span>{item.label}</span></Link>)}<button className="nav-scan" aria-label="Escanear o registrar venta" onClick={() => setScanner(true)}><ScanLine/></button>{nav.slice(2).map(item => <Link key={item.href} href={item.href} className={`nav-item ${pathname === item.href ? "active" : ""}`}><item.icon/><span>{item.label}</span></Link>)}</div></nav>
-    {scanner && <div className="backdrop" onClick={() => setScanner(false)}><div className="sheet" onClick={e => e.stopPropagation()}><div className="sheet-handle"/><div className="top-line"><div><div className="eyebrow">Venta rápida</div><div className="page-title" style={{ fontSize: 24 }}>Leer código</div></div><button className="button ghost" aria-label="Cerrar" onClick={() => setScanner(false)}><X size={17}/></button></div><Scanner online={online} onDone={() => { setScanner(false); router.refresh(); }}/></div></div>}
-  </>;
+
+  return (
+    <div className="app-layout">
+      <aside className="desktop-sidebar" aria-label="Menú de LA NUEVE">
+        <Sidebar user={user} pathname={pathname} onLogout={logout} />
+      </aside>
+
+      <div className="app-main">
+        <header className="mobile-header">
+          <button
+            ref={menuButton}
+            type="button"
+            className="header-icon-button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Abrir navegación"
+            aria-expanded={menuOpen}
+          >
+            <Menu size={21} strokeWidth={2} />
+          </button>
+          <Link href="/" className="mobile-brand" aria-label="LA NUEVE, inicio"><Brand /></Link>
+          <button
+            type="button"
+            className="header-icon-button header-scan-button"
+            onClick={() => setScanner(true)}
+            aria-label="Escanear código para una venta"
+          >
+            <ScanLine size={20} strokeWidth={2} />
+          </button>
+        </header>
+
+        {!online && (
+          <div className="connection-notice" role="status">
+            <WifiOff size={15} aria-hidden="true" />
+            Sin conexión. Las operaciones se habilitan al recuperar Internet.
+          </div>
+        )}
+
+        <main className="app-content">{children}</main>
+      </div>
+
+      {menuOpen && (
+        <div className="mobile-drawer-layer">
+          <button className="drawer-scrim" type="button" aria-label="Cerrar navegación" onClick={() => setMenuOpen(false)} />
+          <aside className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Navegación principal">
+            <button type="button" className="drawer-close header-icon-button" onClick={() => setMenuOpen(false)} aria-label="Cerrar menú">
+              <X size={19} />
+            </button>
+            <Sidebar user={user} pathname={pathname} onNavigate={() => setMenuOpen(false)} onLogout={logout} mobile />
+          </aside>
+        </div>
+      )}
+
+      {scanner && (
+        <div className="backdrop" onClick={() => setScanner(false)}>
+          <div className="sheet" role="dialog" aria-modal="true" aria-label="Venta rápida: leer código" onClick={(event) => event.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-heading">
+              <div>
+                <h2 className="sheet-title">Leer código</h2>
+                <p className="sheet-subtitle">Escaneá un producto para iniciar una venta.</p>
+              </div>
+              <button className="header-icon-button" aria-label="Cerrar escáner" onClick={() => setScanner(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <Scanner online={online} onDone={() => { setScanner(false); router.refresh(); }} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
