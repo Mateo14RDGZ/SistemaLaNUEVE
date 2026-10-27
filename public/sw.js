@@ -1,5 +1,5 @@
-const CACHE = "la-nueve-static-v1";
-const PRECACHE = ["/offline", "/manifest.webmanifest", "/icons/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png"];
+const CACHE = "la-nueve-static-v2";
+const PRECACHE = ["/offline", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png", "/brand/la-nueve.webp", "/brand/la-nueve-lockup.webp"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(PRECACHE)));
   self.skipWaiting();
@@ -16,7 +16,7 @@ self.addEventListener("fetch", event => {
     event.respondWith(fetch(request).catch(() => caches.match("/offline")));
     return;
   }
-  const isStatic = url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || url.pathname === "/manifest.webmanifest";
+  const isStatic = url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || url.pathname.startsWith("/brand/") || url.pathname === "/manifest.webmanifest";
   if (!isStatic) return;
   event.respondWith(caches.match(request).then(cached => {
     if (cached) return cached;

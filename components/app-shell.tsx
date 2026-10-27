@@ -16,10 +16,12 @@ import {
   ScanLine,
   ShoppingCart,
   UserRound,
+  Users,
   WifiOff,
   X,
 } from "lucide-react";
 import { Scanner } from "@/components/scanner";
+import { BrandLogo } from "@/components/brand-logo";
 
 type User = { name: string; email: string; role: string };
 type NavigationItem = { href: string; label: string; icon: typeof Home };
@@ -46,6 +48,7 @@ const navigationGroups: { label: string; items: NavigationItem[] }[] = [
     label: "Sistema",
     items: [
       { href: "/cuenta", label: "Mi cuenta", icon: UserRound },
+      { href: "/equipo", label: "Equipo", icon: Users },
       { href: "/mas", label: "Más opciones", icon: ChevronRight },
     ],
   },
@@ -53,13 +56,7 @@ const navigationGroups: { label: string; items: NavigationItem[] }[] = [
 
 function Brand() {
   return (
-    <span className="brand-lockup">
-      <span className="brand-seal" aria-hidden="true">9</span>
-      <span className="brand-copy">
-        <span className="brand-name">LA NUEVE</span>
-        <span className="brand-tagline">QUE HABLE LO QUE HACEMOS.</span>
-      </span>
-    </span>
+    <span className="brand-lockup"><BrandLogo className="brand-logo" /></span>
   );
 }
 
@@ -102,7 +99,7 @@ function Sidebar({
           <section className="sidebar-group" key={group.label} aria-label={group.label}>
             <h2 className="sidebar-group-label">{group.label}</h2>
             <div className="sidebar-group-items">
-              {group.items.map(({ href, label, icon: Icon }) => {
+              {group.items.filter(({ label }) => label !== "Equipo" || user.role === "ADMIN").map(({ href, label, icon: Icon }) => {
                 const active = href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
                 return (
                   <Link
